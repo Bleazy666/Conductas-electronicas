@@ -180,10 +180,10 @@ export default function GroupsPage() {
     try {
       if (editingStudent) {
         await updateStudent(editingStudent.id, {
-          name: sName.trim(),
-          lastName: sLastName.trim(),
-          matricula: sMatricula.trim(),
-        });
+        name: sName.trim(),
+        last_name: sLastName.trim(),
+        matricula: sMatricula.trim(),
+      });
 
         toast.success("Alumno actualizado");
       } else {
@@ -248,46 +248,55 @@ export default function GroupsPage() {
     reader.readAsArrayBuffer(file);
   };
 
-  const handleImport = async () => {
-    if (!importGroupId) {
-      toast.error("Selecciona grupo");
-      return;
-    }
+const handleImport = async () => {
+  if (!importGroupId) {
+    toast.error("Selecciona grupo");
+    return;
+  }
 
-    if (importRows.length === 0) {
-      toast.error("Archivo vacío");
-      return;
-    }
+  if (importRows.length === 0) {
+    toast.error("Archivo vacío");
+    return;
+  }
 
-    try {
-      const rows = importRows.map((row: any) => ({
-        groupId: importGroupId,
-        name: row.nombre || row.Nombre || "",
-        lastName:
-          row.apellido ||
-          row.Apellido ||
-          row.apellidos ||
-          "",
-        matricula:
-          row.matricula ||
-          row.Matricula ||
-          row.id ||
-          "",
-      }));
+  try {
+    const rows = importRows.map((row: any) => ({
+      group_id: importGroupId,
 
-      await addStudents(rows);
+      name:
+        row.nombre ||
+        row.Nombre ||
+        "",
 
-      toast.success(`${rows.length} alumnos importados`);
+      last_name:
+        row.apellido ||
+        row.Apellido ||
+        row.apellidos ||
+        row.Apellidos ||
+        "",
 
-      setImportDialog(false);
-      setImportRows([]);
-      setImportGroupId("");
+      matricula:
+        row.matricula ||
+        row.Matricula ||
+        row["Matrícula"] ||
+        row.id ||
+        "",
+    }));
 
-      await refresh();
-    } catch {
-      toast.error("Error importando");
-    }
-  };
+    await addStudents(rows);
+
+    toast.success(`${rows.length} alumnos importados`);
+
+    setImportDialog(false);
+    setImportRows([]);
+    setImportGroupId("");
+
+    await refresh();
+  } catch (error) {
+    console.error(error);
+    toast.error("Error importando");
+  }
+};
 
   return (
     <div className="space-y-6">

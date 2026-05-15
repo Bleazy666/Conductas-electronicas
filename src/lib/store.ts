@@ -125,22 +125,15 @@ export const addStudent = async (
 
 export const addStudents = async (
   students: {
-    groupId: string;
+    group_id: string;
     name: string;
-    lastName: string;
+    last_name: string;
     matricula: string;
   }[]
 ) => {
-  const formattedStudents = students.map((student) => ({
-    groupId: student.groupId,
-    name: student.name,
-    lastName: student.lastName,
-    matricula: student.matricula,
-  }));
-
   const { data, error } = await supabase
     .from("students")
-    .insert(formattedStudents)
+    .insert(students)
     .select();
 
   if (error) throw error;
@@ -152,7 +145,7 @@ export const updateStudent = async (
   id: string,
   data: {
     name: string;
-    lastName: string;
+    last_name: string;
     matricula: string;
   }
 ) => {
@@ -160,7 +153,7 @@ export const updateStudent = async (
     .from("students")
     .update({
       name: data.name,
-      lastName: data.lastName,
+      last_name: data.last_name,
       matricula: data.matricula,
     })
     .eq("id", id)
@@ -231,20 +224,20 @@ export const addIncident = async (
 export const updateIncident = async (
   id: string,
   data: {
-    studentId: string;
+    student_id: string;
     date: string;
     type: string;
-    customType?: string;
+    custom_type?: string;
     description?: string;
   }
 ) => {
   const { data: updatedData, error } = await supabase
     .from("incidents")
     .update({
-      studentId: data.studentId,
+      student_id: data.student_id,
       date: data.date,
       type: data.type,
-      customType: data.customType,
+      custom_type: data.custom_type,
       description: data.description,
     })
     .eq("id", id)
