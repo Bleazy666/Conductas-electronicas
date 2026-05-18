@@ -141,10 +141,10 @@ export default function IncidentsPage() {
 
     if (editing) {
       await updateIncident(editing.id, {
-        studentId,
+        student_id: studentId,
         date,
         type,
-        customType,
+        custom_type: customType,
         description,
       });
 
@@ -266,8 +266,14 @@ export default function IncidentsPage() {
 
                       <Badge variant="outline">
                         {inc.type === "otro"
-                          ? inc.custom_type
-                          : inc.type}
+                          ? inc.custom_type || "Otro"
+                          : {
+                              falta_respeto: "Falta de respeto",
+                              agresion: "Agresión",
+                              impuntualidad: "Impuntualidad",
+                              dano_materiales: "Daño a materiales",
+                              indisciplina: "Indisciplina",
+                            }[inc.type]}
                       </Badge>
                     </div>
 
@@ -377,30 +383,55 @@ export default function IncidentsPage() {
             <div>
               <Label>Tipo</Label>
 
-              <Input
+              <Select
                 value={type}
-                onChange={(e) =>
-                  setType(
-                    e.target.value
-                  )
-                }
-              />
+                onValueChange={setType}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="falta_respeto">
+                    Falta de respeto
+                  </SelectItem>
+
+                  <SelectItem value="agresion">
+                    Agresión
+                  </SelectItem>
+
+                  <SelectItem value="impuntualidad">
+                    Impuntualidad
+                  </SelectItem>
+
+                  <SelectItem value="dano_materiales">
+                    Daño a materiales
+                  </SelectItem>
+
+                  <SelectItem value="indisciplina">
+                    Indisciplina
+                  </SelectItem>
+
+                  <SelectItem value="otro">
+                    Otro
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
-              <Label>
-                Tipo personalizado
-              </Label>
+            {type === "otro" && (
+              <div>
+                <Label>Tipo personalizado</Label>
 
-              <Input
-                value={customType}
-                onChange={(e) =>
-                  setCustomType(
-                    e.target.value
-                  )
-                }
-              />
-            </div>
+                <Input
+                  value={customType}
+                  onChange={(e) =>
+                    setCustomType(e.target.value)
+                  }
+                  placeholder="Escribe el tipo"
+                />
+              </div>
+            )}
 
             <div>
               <Label>
