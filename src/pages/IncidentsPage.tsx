@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import {
   getGroups,
   getStudents,
+  getAllStudents,
   getIncidents,
   addIncident,
 } from "@/lib/store";
@@ -79,7 +80,7 @@ export default function IncidentsPage() {
       await getGroups();
 
     const dataStudents =
-      await getStudents();
+      await getAllStudents();
 
     setIncidents(dataIncidents || []);
     setGroups(dataGroups || []);

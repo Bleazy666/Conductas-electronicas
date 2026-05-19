@@ -103,6 +103,18 @@ export const getStudents = async (
   return data || [];
 };
 
+export const getAllStudents = async (): Promise<Student[]> => {
+  const { data, error } = await supabase
+  .from("students")
+  .select("*");
+
+  if(error) {
+    console.error(error);
+    return [];
+  }
+  return data || [];
+};
+
 export const addStudent = async (
   group_id: string,
   name: string,
