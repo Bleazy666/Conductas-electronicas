@@ -1,9 +1,15 @@
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Trash2, Edit2, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
+
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card";
+
 import {
   Dialog,
   DialogContent,
@@ -11,7 +17,9 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+
 import { Label } from "@/components/ui/label";
+
 import {
   Select,
   SelectContent,
@@ -19,7 +27,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import { Badge } from "@/components/ui/badge";
+
 import { toast } from "sonner";
 
 import {
@@ -27,8 +37,6 @@ import {
   getStudents,
   getIncidents,
   addIncident,
-  deleteIncident,
-  updateIncident,
 } from "@/lib/store";
 
 import { useSearchParams } from "react-router-dom";
@@ -42,23 +50,34 @@ export default function IncidentsPage() {
 
   const [search, setSearch] = useState("");
   const [filterGroup, setFilterGroup] = useState("all");
+
   const [dialog, setDialog] = useState(
     searchParams.get("new") === "1"
   );
-  const [editing, setEditing] = useState<any>(null);
 
   const [studentId, setStudentId] = useState("");
+
   const [date, setDate] = useState(
     new Date().toISOString().split("T")[0]
   );
+
   const [type, setType] = useState("falta_respeto");
-  const [customType, setCustomType] = useState("");
-  const [description, setDescription] = useState("");
+
+  const [customType, setCustomType] =
+    useState("");
+
+  const [description, setDescription] =
+    useState("");
 
   const refresh = async () => {
-    const dataIncidents = await getIncidents();
-    const dataGroups = await getGroups();
-    const dataStudents = await getStudents();
+    const dataIncidents =
+      await getIncidents();
+
+    const dataGroups =
+      await getGroups();
+
+    const dataStudents =
+      await getStudents();
 
     setIncidents(dataIncidents || []);
     setGroups(dataGroups || []);
@@ -74,13 +93,20 @@ export default function IncidentsPage() {
 
     result.sort(
       (a, b) =>
-        new Date(b.created_at || b.date).getTime() -
-        new Date(a.created_at || a.date).getTime()
+        new Date(
+          b.created_at || b.date
+        ).getTime() -
+        new Date(
+          a.created_at || a.date
+        ).getTime()
     );
 
     if (filterGroup !== "all") {
       const ids = students
-        .filter((s) => s.group_id === filterGroup)
+        .filter(
+          (s) =>
+            s.group_id === filterGroup
+        )
         .map((s) => s.id);
 
       result = result.filter((i) =>
@@ -97,15 +123,26 @@ export default function IncidentsPage() {
         );
 
         return (
-          student?.name?.toLowerCase().includes(q) ||
-          student?.last_name?.toLowerCase().includes(q) ||
-          i.description?.toLowerCase().includes(q)
+          student?.name
+            ?.toLowerCase()
+            .includes(q) ||
+          student?.last_name
+            ?.toLowerCase()
+            .includes(q) ||
+          i.description
+            ?.toLowerCase()
+            .includes(q)
         );
       });
     }
 
     return result;
-  }, [incidents, students, filterGroup, search]);
+  }, [
+    incidents,
+    students,
+    filterGroup,
+    search,
+  ]);
 
   const getStudent = (id: string) =>
     students.find((s) => s.id === id);
@@ -114,42 +151,33 @@ export default function IncidentsPage() {
     groups.find((g) => g.id === id);
 
   const openNew = () => {
-    setEditing(null);
     setStudentId("");
-    setDate(new Date().toISOString().split("T")[0]);
-    setType("falta_respeto");
-    setCustomType("");
-    setDescription("");
-    setDialog(true);
-  };
 
-  const openEdit = (inc: any) => {
-    setEditing(inc);
-    setStudentId(inc.student_id);
-    setDate(inc.date);
-    setType(inc.type);
-    setCustomType(inc.custom_type || "");
-    setDescription(inc.description || "");
+    setDate(
+      new Date()
+        .toISOString()
+        .split("T")[0]
+    );
+
+    setType("falta_respeto");
+
+    setCustomType("");
+
+    setDescription("");
+
     setDialog(true);
   };
 
   const handleSave = async () => {
     if (!studentId) {
-      toast.error("Selecciona un alumno");
+      toast.error(
+        "Selecciona un alumno"
+      );
+
       return;
     }
 
-    if (editing) {
-      await updateIncident(editing.id, {
-        student_id: studentId,
-        date,
-        type,
-        custom_type: customType,
-        description,
-      });
-
-      toast.success("Incidencia actualizada");
-    } else {
+    try {
       await addIncident(
         studentId,
         date,
@@ -158,27 +186,31 @@ export default function IncidentsPage() {
         description
       );
 
-      toast.success("Incidencia creada");
+      toast.success(
+        "Incidencia creada"
+      );
+
+      setDialog(false);
+
+      refresh();
+    } catch (error) {
+      console.error(error);
+
+      toast.error(
+        "Error al guardar incidencia"
+      );
     }
-
-    setDialog(false);
-    refresh();
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("¿Eliminar incidencia?")) return;
+  const groupedStudents = groups.map(
+    (g) => ({
+      group: g,
 
-    await deleteIncident(id);
-    toast.success("Incidencia eliminada");
-    refresh();
-  };
-
-  const groupedStudents = groups.map((g) => ({
-    group: g,
-    students: students.filter(
-      (s) => s.group_id === g.id
-    ),
-  }));
+      students: students.filter(
+        (s) => s.group_id === g.id
+      ),
+    })
+  );
 
   return (
     <div className="space-y-6">
@@ -202,14 +234,18 @@ export default function IncidentsPage() {
             placeholder="Buscar..."
             value={search}
             onChange={(e) =>
-              setSearch(e.target.value)
+              setSearch(
+                e.target.value
+              )
             }
           />
         </div>
 
         <Select
           value={filterGroup}
-          onValueChange={setFilterGroup}
+          onValueChange={
+            setFilterGroup
+          }
         >
           <SelectTrigger className="w-56">
             <SelectValue />
@@ -240,80 +276,81 @@ export default function IncidentsPage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {filteredIncidents.map((inc) => {
-            const student = getStudent(
-              inc.student_id
-            );
+          {filteredIncidents.map(
+            (inc) => {
+              const student =
+                getStudent(
+                  inc.student_id
+                );
 
-            const group = student
-              ? getGroup(student.group_id)
-              : null;
+              const group = student
+                ? getGroup(
+                    student.group_id
+                  )
+                : null;
 
-            return (
-              <Card key={inc.id}>
-                <CardContent className="py-4 flex justify-between">
-                  <div className="space-y-1">
-                    <div className="flex gap-2 items-center">
-                      <span className="font-medium">
-                        {student
-                          ? `${student.name} ${student.last_name}`
-                          : "Alumno eliminado"}
-                      </span>
+              return (
+                <Card key={inc.id}>
+                  <CardContent className="py-4 flex justify-between">
+                    <div className="space-y-1">
+                      <div className="flex gap-2 items-center flex-wrap">
+                        <span className="font-medium">
+                          {student
+                            ? `${student.name} ${student.last_name}`
+                            : "Alumno eliminado"}
+                        </span>
 
-                      <Badge variant="secondary">
-                        {group?.name || "—"}
-                      </Badge>
+                        <Badge variant="secondary">
+                          {group?.name ||
+                            "—"}
+                        </Badge>
 
-                      <Badge variant="outline">
-                        {inc.type === "otro"
-                          ? inc.custom_type || "Otro"
-                          : {
-                              falta_respeto: "Falta de respeto",
-                              agresion: "Agresión",
-                              impuntualidad: "Impuntualidad",
-                              dano_materiales: "Daño a materiales",
-                              indisciplina: "Indisciplina",
-                            }[inc.type]}
-                      </Badge>
+                        <Badge variant="outline">
+                          {inc.type ===
+                          "otro"
+                            ? inc.custom_type ||
+                              "Otro"
+                            : {
+                                falta_respeto:
+                                  "Falta de respeto",
+
+                                agresion:
+                                  "Agresión",
+
+                                impuntualidad:
+                                  "Impuntualidad",
+
+                                dano_materiales:
+                                  "Daño a materiales",
+
+                                indisciplina:
+                                  "Indisciplina",
+                              }[
+                                inc.type
+                              ]}
+                        </Badge>
+                      </div>
+
+                      <p className="text-sm text-muted-foreground">
+                        {inc.date}
+                      </p>
+
+                      {inc.description && (
+                        <p className="text-sm">
+                          {
+                            inc.description
+                          }
+                        </p>
+                      )}
                     </div>
 
-                    <p className="text-sm text-muted-foreground">
-                      {inc.date}
-                    </p>
-
-                    {inc.description && (
-                      <p className="text-sm">
-                        {inc.description}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() =>
-                        openEdit(inc)
-                      }
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="text-destructive"
-                      onClick={() =>
-                        handleDelete(inc.id)
-                      }
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                    {/* SIN BOTONES DE EDITAR NI ELIMINAR */}
+                    <div />
+                  </CardContent>
+                </Card>
+              );
+            }
+          )}
         </div>
       )}
 
@@ -324,9 +361,7 @@ export default function IncidentsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editing
-                ? "Editar incidencia"
-                : "Nueva incidencia"}
+              Nueva incidencia
             </DialogTitle>
           </DialogHeader>
 
@@ -336,7 +371,9 @@ export default function IncidentsPage() {
 
               <Select
                 value={studentId}
-                onValueChange={setStudentId}
+                onValueChange={
+                  setStudentId
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona alumno" />
@@ -344,21 +381,30 @@ export default function IncidentsPage() {
 
                 <SelectContent>
                   {groupedStudents.map(
-                    ({ group, students }) => (
-                      <div key={group.id}>
+                    ({
+                      group,
+                      students,
+                    }) => (
+                      <div
+                        key={group.id}
+                      >
                         <div className="px-2 py-1 text-xs text-muted-foreground">
                           {group.name}
                         </div>
 
-                        {students.map((s) => (
-                          <SelectItem
-                            key={s.id}
-                            value={s.id}
-                          >
-                            {s.name}{" "}
-                            {s.last_name}
-                          </SelectItem>
-                        ))}
+                        {students.map(
+                          (s) => (
+                            <SelectItem
+                              key={s.id}
+                              value={s.id}
+                            >
+                              {s.name}{" "}
+                              {
+                                s.last_name
+                              }
+                            </SelectItem>
+                          )
+                        )}
                       </div>
                     )
                   )}
@@ -385,7 +431,9 @@ export default function IncidentsPage() {
 
               <Select
                 value={type}
-                onValueChange={setType}
+                onValueChange={
+                  setType
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -421,12 +469,16 @@ export default function IncidentsPage() {
 
             {type === "otro" && (
               <div>
-                <Label>Tipo personalizado</Label>
+                <Label>
+                  Tipo personalizado
+                </Label>
 
                 <Input
                   value={customType}
                   onChange={(e) =>
-                    setCustomType(e.target.value)
+                    setCustomType(
+                      e.target.value
+                    )
                   }
                   placeholder="Escribe el tipo"
                 />
