@@ -24,7 +24,11 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { INCIDENT_TYPE_LABELS } from "@/types";
-import { getGroups, getStudents, getIncidents } from "@/lib/store";
+import { 
+  getGroups, 
+  getStudents,
+  getAllStudents,
+  getIncidents } from "@/lib/store";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -42,7 +46,7 @@ export default function ReportsPage() {
 
   const loadData = async () => {
     const g = await getGroups();
-    const s = await getStudents();
+    const s = await getAllStudents();
     const i = await getIncidents();
 
     setGroups(Array.isArray(g) ? g : []);
