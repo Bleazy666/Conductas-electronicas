@@ -67,6 +67,10 @@ export default function GroupsPage() {
     searchParams.get("import") === "1"
   );
 
+  const [savingGroup, setSavingGroup] = useState(false);
+  const [savingStudent, setSavingStudent] = useState(false);
+  const [savingImport, setSavingImport] = useState(false);
+
   const [importRows, setImportRows] = useState<any[]>([]);
   const [importGroupId, setImportGroupId] = useState("");
 
@@ -121,27 +125,35 @@ export default function GroupsPage() {
      GROUP CRUD
   ========================================== */
 
-  const handleSaveGroup = async () => {
-    if (!groupName.trim()) return;
+const handleSaveGroup = async () => {
+  if (savingGroup) return;
 
-    try {
-      if (editingGroup) {
-        await updateGroup(editingGroup.id, groupName.trim());
-        toast.success("Grupo actualizado");
-      } else {
-        await addGroup(groupName.trim());
-        toast.success("Grupo creado");
-      }
+  if (!groupName.trim()) return;
 
-      setGroupDialog(false);
-      setEditingGroup(null);
-      setGroupName("");
+  try {
+    setSavingGroup(true);
 
-      await refresh();
-    } catch {
-      toast.error("Error guardando grupo");
+    if (editingGroup) {
+      await updateGroup(editingGroup.id, groupName.trim());
+
+      toast.success("Grupo actualizado");
+    } else {
+      await addGroup(groupName.trim());
+
+      toast.success("Grupo creado");
     }
-  };
+
+    setGroupDialog(false);
+    setEditingGroup(null);
+    setGroupName("");
+
+    await refresh();
+  } catch {
+    toast.error("Error guardando grupo");
+  } finally {
+    setSavingGroup(false);
+  }
+};
 
   const handleDeleteGroup = async (id: string) => {
     if (!confirm("¿Eliminar grupo y alumnos?")) return;
@@ -165,6 +177,8 @@ export default function GroupsPage() {
   ========================================== */
 
   const handleSaveStudent = async () => {
+    if (savingStudent) return;
+
     const groupId = selectedGroupId || groups[0]?.id;
 
     if (!groupId) {
@@ -178,12 +192,14 @@ export default function GroupsPage() {
     }
 
     try {
+      setSavingStudent(true);
+
       if (editingStudent) {
         await updateStudent(editingStudent.id, {
-        name: sName.trim(),
-        last_name: sLastName.trim(),
-        matricula: sMatricula.trim(),
-      });
+          name: sName.trim(),
+          last_name: sLastName.trim(),
+          matricula: sMatricula.trim(),
+        });
 
         toast.success("Alumno actualizado");
       } else {
@@ -198,6 +214,7 @@ export default function GroupsPage() {
       }
 
       setStudentDialog(false);
+
       setEditingStudent(null);
 
       setSName("");
@@ -207,6 +224,8 @@ export default function GroupsPage() {
       await refresh();
     } catch {
       toast.error("Error guardando alumno");
+    } finally {
+      setSavingStudent(false);
     }
   };
 
@@ -249,6 +268,8 @@ export default function GroupsPage() {
   };
 
 const handleImport = async () => {
+  if (savingImport) return;
+
   if (!importGroupId) {
     toast.error("Selecciona grupo");
     return;
@@ -260,6 +281,8 @@ const handleImport = async () => {
   }
 
   try {
+    setSavingImport(true);
+
     const rows = importRows.map((row: any) => ({
       group_id: importGroupId,
 
@@ -288,13 +311,21 @@ const handleImport = async () => {
     toast.success(`${rows.length} alumnos importados`);
 
     setImportDialog(false);
+
     setImportRows([]);
     setImportGroupId("");
+
+    if (fileRef.current) {
+      fileRef.current.value = "";
+    }
 
     await refresh();
   } catch (error) {
     console.error(error);
+
     toast.error("Error importando");
+  } finally {
+    setSavingImport(false);
   }
 };
 
@@ -471,8 +502,10 @@ const handleImport = async () => {
           />
 
           <DialogFooter>
-            <Button onClick={handleSaveGroup}>
-              Guardar
+            <Button onClick={handleSaveGroup}
+            disabled={savingGroup}
+            >
+              {savingGroup ? "Guardando..." : "Guardar"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -523,8 +556,10 @@ const handleImport = async () => {
           </div>
 
           <DialogFooter>
-            <Button onClick={handleSaveStudent}>
-              Guardar
+            <Button onClick={handleSaveStudent} 
+            disabled={savingStudent}
+            >
+              {savingStudent ? "Guardando..." : "Guardar"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -576,8 +611,12 @@ const handleImport = async () => {
                 </SelectContent>
               </Select>
 
-              <Button onClick={handleImport}>
-                Importar {importRows.length}
+              <Button onClick={handleImport}
+              disabled={savingImport}
+              >
+                {savingImport
+                ? "Importando..."
+                : `Importar ${importRows.length}`}
               </Button>
             </>
           )}
