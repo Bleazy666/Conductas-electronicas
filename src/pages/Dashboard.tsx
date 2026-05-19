@@ -223,7 +223,7 @@ export default function Dashboard() {
                             ? inc.custom_type || "Otro"
                             : INCIDENT_TYPE_LABELS[inc.type]}
                           {" · "}
-                          {new Date(inc.date).toLocaleDateString("es-MX")}
+                          {inc.date}
                         </p>
                       </div>
                     </div>
