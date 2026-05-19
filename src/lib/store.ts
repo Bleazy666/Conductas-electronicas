@@ -84,7 +84,10 @@ export const deleteGroup = async (id: string) => {
 export const getStudents = async (
   groupId?: string
 ): Promise<Student[]> => {
-  let query = supabase.from("students").select("*");
+  let query = supabase
+  .from("students")
+  .select("*")
+  .eq("active", true);
 
   if (groupId) {
     query = query.eq("group_id", groupId);
@@ -167,7 +170,7 @@ export const updateStudent = async (
 export const deleteStudent = async (id: string) => {
   const { error } = await supabase
     .from("students")
-    .delete()
+    .update({ active: false })
     .eq("id", id);
 
   if (error) throw error;

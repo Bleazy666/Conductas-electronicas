@@ -63,6 +63,8 @@ export default function IncidentsPage() {
 
   const [type, setType] = useState("falta_respeto");
 
+  const [saving, setSaving] = useState(false);
+  
   const [customType, setCustomType] =
     useState("");
 
@@ -169,37 +171,35 @@ export default function IncidentsPage() {
   };
 
   const handleSave = async () => {
-    if (!studentId) {
-      toast.error(
-        "Selecciona un alumno"
-      );
+      if (!studentId) {
+        toast.error("Selecciona un alumno");
+        return;
+      }
 
-      return;
-    }
+      if (saving) return;
 
-    try {
-      await addIncident(
-        studentId,
-        date,
-        type,
-        customType,
-        description
-      );
+      try {
+        setSaving(true);
 
-      toast.success(
-        "Incidencia creada"
-      );
+        await addIncident(
+          studentId,
+          date,
+          type,
+          customType,
+          description
+        );
 
-      setDialog(false);
+        toast.success("Incidencia creada");
 
-      refresh();
-    } catch (error) {
-      console.error(error);
+        setDialog(false);
 
-      toast.error(
-        "Error al guardar incidencia"
-      );
-    }
+        await refresh();
+      } catch (error) {
+        console.error(error);
+        toast.error("Error guardando incidencia");
+      } finally {
+        setSaving(false);
+      }
   };
 
   const groupedStudents = groups.map(
@@ -502,8 +502,11 @@ export default function IncidentsPage() {
           </div>
 
           <DialogFooter>
-            <Button onClick={handleSave}>
-              Guardar
+            <Button 
+            onClick={handleSave}
+            disabled={saving}
+            >
+              {saving ? "Guardando..." : "Guardar"}
             </Button>
           </DialogFooter>
         </DialogContent>
