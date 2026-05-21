@@ -78,12 +78,29 @@ export const updateGroup = async (
 };
 
 export const deleteGroup = async (id: string) => {
+
+  //Obtener gupo antes de aliminarlo para el log
+  const {data: group} = await supabase
+  .from("groups")
+  .select("name")
+  .eq("id", id)
+  .single();
+
+  //Soft delete
   const { error } = await supabase
     .from("groups")
     .delete()
     .eq("id", id);
 
   if (error) throw error;
+
+  //Mandar el registro al log
+  await addLog(
+    "DELETE_GROUP",
+    "group", 
+    id,
+    `Se eliminó el grupo ${group?.name}`
+  );
 };
 
 /* =========================
@@ -189,18 +206,35 @@ export const updateStudent = async (
 };
 
 export const deleteStudent = async (id: string) => {
+
+  // Obtener alumno antes de eliminarlo para el log
+  const {data: student } = await supabase
+    .from("students")
+    .select(`
+      name,
+      last_name,
+      groups(name)
+      `)
+      .eq("id", id)
+      .single();
+
   const { error } = await supabase
     .from("students")
     .update({ active: false })
     .eq("id", id);
 
   if (error) throw error;
+
+  //Mandar el registro al log
+  await addLog(
+    "DELETE_STUDENT",
+    "student",
+    id,
+    `Se elimninó el alumno ${student?.name} ${student?.last_name} del grupo 
+    ${(student?.groups as any)?.name || "Sin grupo"
+    }`
+  );
 };
-
-
-
-
-
 
 /* =========================
    INCIDENTS
@@ -227,6 +261,7 @@ export const addIncident = async (
   custom_type: string,
   description: string
 ) => {
+
   const { data, error } = await supabase
     .from("incidents")
     .insert([
@@ -238,9 +273,35 @@ export const addIncident = async (
         description,
       },
     ])
-    .select();
+    .select()
+    .single();
 
   if (error) throw error;
+
+  // Obtener alumno
+  const { data: student } = await supabase
+    .from("students")
+    .select(`
+      name,
+      last_name,
+      groups(name)
+    `)
+    .eq("id", student_id)
+    .single();
+
+  // Tipo legible
+  const incidentType =
+    type === "otro"
+      ? custom_type
+      : type;
+
+  // Registrar log
+  await addLog(
+    "CREATE",
+    "incident",
+    data.id,
+    `Se registró incidencia "${incidentType}" al alumno ${student?.name} ${student?.last_name}`
+  );
 
   return data;
 };
