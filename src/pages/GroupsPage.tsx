@@ -42,6 +42,7 @@ import {
   addStudents,
   updateStudent,
   deleteStudent,
+  addLog,
 } from "@/lib/store";
 
 export default function GroupsPage() {
@@ -136,9 +137,23 @@ const handleSaveGroup = async () => {
     if (editingGroup) {
       await updateGroup(editingGroup.id, groupName.trim());
 
+      await addLog(
+        "UPDATE_GROUP",
+        "group",
+        editingGroup.id,
+         `Grupo actualizado a ${groupName}`
+      );
+
       toast.success("Grupo actualizado");
     } else {
       await addGroup(groupName.trim());
+
+      await addLog(
+        "CREATE_GROUP",
+        "group",
+        "new",
+        `Grupo ${groupName} creado`
+      );
 
       toast.success("Grupo creado");
     }
@@ -160,6 +175,13 @@ const handleSaveGroup = async () => {
 
     try {
       await deleteGroup(id);
+
+      await addLog(
+        "DELETE_GROUP",
+        "group",
+        id,
+        "Grupo eliminado"
+      );
 
       if (selectedGroupId === id) {
         setSelectedGroupId(null);
@@ -201,6 +223,13 @@ const handleSaveGroup = async () => {
           matricula: sMatricula.trim(),
         });
 
+        await addLog(
+          "UPDATE_STUDENT",
+          "student",
+          editingStudent.id,
+          `Alumno ${sName} ${sLastName} actualizado`
+        );
+
         toast.success("Alumno actualizado");
       } else {
         await addStudent(
@@ -208,6 +237,13 @@ const handleSaveGroup = async () => {
           sName.trim(),
           sLastName.trim(),
           sMatricula.trim()
+        );
+
+        await addLog(
+          "CREATE_STUDENT",
+          "student",
+          "new",
+          `Alumno ${sName} ${sLastName} agregado` 
         );
 
         toast.success("Alumno agregado");
@@ -234,6 +270,14 @@ const handleSaveGroup = async () => {
 
     try {
       await deleteStudent(id);
+
+      await addLog(
+        "DELETE_STUDENT",
+        "student",
+        id,
+        "Alumno eliminado"
+      );
+
       toast.success("Alumno eliminado");
       await refresh();
     } catch {
@@ -307,6 +351,13 @@ const handleImport = async () => {
     }));
 
     await addStudents(rows);
+
+    await addLog(
+      "IMPORT_STUDENTS",
+      "student",
+      importGroupId,
+      `Se importaron ${rows.length} alumnos`
+    );
 
     toast.success(`${rows.length} alumnos importados`);
 

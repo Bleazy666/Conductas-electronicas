@@ -1,5 +1,14 @@
 import { supabase } from "./supabase";
 
+export interface ActivityLog {
+  id: string;
+  action:string;
+  entity_type: string;
+  entity_id?: string;
+  description: string;
+  created_at?: string;
+}
+
 export interface Group {
   id: string;
   name: string;
@@ -270,4 +279,30 @@ export const deleteIncident = async (id: string) => {
     .eq("id", id);
 
   if (error) throw error;
+};
+
+/** =========================
+ *  ACTIVITY LOG
+========================= */
+
+export const addLog = async (
+  action: string,
+  entity_type: string,
+  entity_id: string,
+  description: string
+) => {
+  const { error } = await supabase
+  .from("activity_logs")
+  .insert([
+    {
+      action,
+      entity_type,
+      entity_id,
+      description,
+    },
+  ]);
+  if (error) {
+    console.log("LOG Error", error);
+    console.log("LOG OK")
+  }
 };
