@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { INCIDENT_TYPE_LABELS } from "@/types";
 
+import { generateBackup} from "@/lib/backup";
+
 export default function Dashboard() {
   const [groups, setGroups] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
