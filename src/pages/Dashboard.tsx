@@ -110,7 +110,7 @@ export default function Dashboard() {
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground text-sm">
-            Resumen general del sistema
+            Resumen general del sistema xd
           </p>
         </div>
 
