@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,6 +71,12 @@ export default function IncidentsPage() {
 
   const [description, setDescription] =
     useState("");
+
+  const [aiLoading, setAiLoading] =
+    useState(false);
+  
+  const [aiSuggestion, setAiSuggestion] =
+    useState(""); 
 
   const refresh = async () => {
     const dataIncidents =
@@ -171,9 +177,61 @@ export default function IncidentsPage() {
     setDialog(true);
   };
 
+  const handleAISuggestion = async () => {
+  if (!description.trim()) {
+    toast.error("Escribe una descripción antes de solicitar una sugerencia");
+    return;
+  }
+
+  if (aiLoading) return;
+
+  try {
+    setAiLoading(true);
+    setAiSuggestion("");
+
+    const response = await fetch(
+      "http://localhost:3001/api/ai/sugerir-descripcion",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tipo: type,
+          descripcion: description,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || "Error al obtener sugerencia"
+      );
+    }
+
+    setAiSuggestion(data.sugerencia || "");
+
+  } catch (error) {
+    console.error("Error con IA:", error);
+
+    toast.error(
+      "No se pudo obtener la sugerencia de IA"
+    );
+  } finally {
+    setAiLoading(false);
+  }
+};
+
   const handleSave = async () => {
       if (!studentId) {
         toast.error("Selecciona un alumno");
+        return;
+      }
+
+      if (!description.trim()){
+        toast.error("No se puede guardar incidencias sin descripción.");
         return;
       }
 
@@ -486,19 +544,69 @@ export default function IncidentsPage() {
               </div>
             )}
 
-            <div>
+            <div className="space-y-2">
               <Label>
                 Descripción
               </Label>
 
               <Textarea
                 value={description}
-                onChange={(e) =>
-                  setDescription(
-                    e.target.value
-                  )
-                }
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  setAiSuggestion("");
+                }}
+                placeholder="Describe lo ocurrido..."
               />
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAISuggestion}
+                disabled={aiLoading}
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+
+                {aiLoading
+                  ? "Generando sugerencia..."
+                  : "Probar sugerencia con IA"}
+              </Button>
+
+              {aiSuggestion && (
+                <div className="rounded-md border p-3 space-y-3">
+                  <div className="text-sm font-medium">
+                    Sugerencia de IA
+                  </div>
+
+                  <p className="text-sm text-muted-foreground">
+                    {aiSuggestion}
+                  </p>
+
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => {
+                        setDescription(aiSuggestion);
+                        setAiSuggestion("");
+                      }}
+                    >
+                      Usar sugerencia
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setAiSuggestion("")
+                      }
+                    >
+                      Descartar
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
