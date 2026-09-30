@@ -190,7 +190,7 @@ export default function IncidentsPage() {
     setAiSuggestion("");
 
     const response = await fetch(
-      "http://localhost:3001/api/ai/sugerir-descripcion",
+      "/api/ai/sugerir-descripcion",
       {
         method: "POST",
         headers: {
